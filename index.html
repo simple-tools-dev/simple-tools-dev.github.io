@@ -350,8 +350,12 @@
   const PDFMERGER_LATEST_RELEASE_PAGE = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
   const PDFMERGER_API_LATEST = `https://api.github.com/repos/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
 
+  // Direct download fallbacks (so buttons never end up on the release page)
+  const PDFMERGER_EXE_LATEST_DOWNLOAD = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest/download/${encodeURIComponent(PDFMERGER_EXE_NAME)}`;
+  const PDFMERGER_ZIP_LATEST_DOWNLOAD = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest/download/${encodeURIComponent(PDFMERGER_ZIP_NAME)}`;
+
   // We'll read browser_download_url from the GitHub API so the links always match the latest release.
-  let pdfmergerDownloadLinks = { exe: PDFMERGER_LATEST_RELEASE_PAGE, zip: PDFMERGER_LATEST_RELEASE_PAGE };
+  let pdfmergerDownloadLinks = { exe: PDFMERGER_EXE_LATEST_DOWNLOAD, zip: PDFMERGER_ZIP_LATEST_DOWNLOAD };
   let pdfmergerTotalDownloads = null; // EXE + ZIP combined (latest release)
   let pdfmergerDownloadNote = null;   // if rate-limited/error, show a subtle note
 
@@ -739,8 +743,8 @@
 
       // Prefer links from API (browser_download_url) so they always point to the latest release asset.
       pdfmergerDownloadLinks = {
-        exe: exe?.browser_download_url || PDFMERGER_LATEST_RELEASE_PAGE,
-        zip: zip?.browser_download_url || PDFMERGER_LATEST_RELEASE_PAGE
+        exe: exe?.browser_download_url || pdfmergerDownloadLinks.exe,
+        zip: zip?.browser_download_url || pdfmergerDownloadLinks.zip
       };
 
       pdfmergerDownloadNote = null;
