@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simple Tools Dev</title>
-  <meta name="description" content="Små webbaserade verktyg (hobbyprojekt). Valutakurser, data och utilities." />
+  <meta name="description" content="Small web tools (hobby projects). Currency rates, PDF utilities and more." />
 
   <style>
     :root{
@@ -56,7 +56,6 @@
     a{ color: inherit; text-decoration: none; }
     .wrap{ max-width: 1080px; margin: 0 auto; padding: 28px 18px 50px; }
 
-    /* top bar */
     .topbar{
       display:flex; align-items:center; justify-content:space-between;
       gap: 12px;
@@ -78,7 +77,7 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
     }
-    .top-actions{ display:flex; gap: 10px; align-items:center; }
+    .top-actions{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
 
     .chip{
       display:inline-flex; align-items:center; gap: 8px;
@@ -105,7 +104,6 @@
     .btn:active{ transform: translateY(1px); }
     .btn:focus{ outline: none; box-shadow: 0 0 0 4px var(--focus); }
 
-    /* hero */
     .hero{
       border: 1px solid var(--border);
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
@@ -122,7 +120,6 @@
       background:
         radial-gradient(500px 240px at 20% 0%, rgba(110,231,255,0.22), transparent 65%),
         radial-gradient(500px 240px at 80% 20%, rgba(167,139,250,0.20), transparent 65%);
-      filter: blur(0px);
       pointer-events:none;
     }
     .hero-inner{ position: relative; display:grid; gap: 10px; }
@@ -145,7 +142,6 @@
       border-color: rgba(255,255,255,0.16);
     }
 
-    /* controls */
     .controls{
       display:grid;
       grid-template-columns: 1fr;
@@ -199,7 +195,6 @@
       background: rgba(110,231,255,0.12);
     }
 
-    /* grid */
     .grid{
       display:grid;
       grid-template-columns: 1fr;
@@ -223,9 +218,7 @@
       transform: translateY(6px);
       animation: pop .35s ease forwards;
     }
-    @keyframes pop{
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes pop{ to { opacity: 1; transform: translateY(0); } }
     .card:hover{ transform: translateY(-2px); border-color: rgba(110,231,255,0.25); }
 
     .card-top{
@@ -270,7 +263,6 @@
     }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
-    /* small icon */
     .dot{
       width: 9px; height: 9px; border-radius: 999px;
       background: var(--good);
@@ -335,7 +327,7 @@
 
     <div class="footer">
       <div>
-        <span class="mono">simple-tools-dev</span> • built with GitHub Pages
+        <span class="mono">simple-tools-dev</span> • <span id="footerText">built with GitHub Pages</span>
       </div>
     </div>
 
@@ -343,24 +335,27 @@
 
 <script>
 (() => {
-  // === Configure your GitHub release download links here ===
-  // Replace if your repo name differs in casing.
-  // Using a fixed tag makes it stable for a specific release. You can update later per release.
-  // If you prefer "latest", you can link to the releases page instead.
-  const PDFMERGER_VERSION_TAG = "v1.0.0";
-  const PDFMERGER_REPO = "https://github.com/simple-tools-dev/pdfmerger";
-  const PDFMERGER_RELEASE_BASE = `${PDFMERGER_REPO}/releases/download/${PDFMERGER_VERSION_TAG}`;
-  const PDFMERGER_ZIP = `${PDFMERGER_RELEASE_BASE}/PDFMerger-Setup-1.00.zip`;
-  const PDFMERGER_EXE = `${PDFMERGER_RELEASE_BASE}/PDFMerger-Setup-1.00.exe`;
-  const PDFMERGER_LATEST = `${PDFMERGER_REPO}/releases/latest`;
+  // ====== PDFMerger: CHANGE THESE IF NEEDED ======
+  // NOTE: Ensure this matches your repo exactly (case sensitive in URL aesthetics).
+  const PDFMERGER_OWNER = "simple-tools-dev";
+  const PDFMERGER_REPO = "pdfmerger"; // change to "PDFMerger" if your repo uses that casing
 
-  // Language strings
+  // These are your filenames in the release assets:
+  const PDFMERGER_EXE_NAME = "PDFMerger-Setup-1.00.exe";
+  const PDFMERGER_ZIP_NAME = "PDFMerger-Setup-1.00.zip";
+
+  const PDFMERGER_LATEST_RELEASE_PAGE = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
+  const PDFMERGER_API_LATEST = `https://api.github.com/repos/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
+
+  // We'll read browser_download_url from the GitHub API so the links always match the latest release.
+  let pdfmergerDownloadLinks = { exe: PDFMERGER_LATEST_RELEASE_PAGE, zip: PDFMERGER_LATEST_RELEASE_PAGE };
+  let pdfmergerTotalDownloads = null; // EXE + ZIP combined (latest release)
+  let pdfmergerDownloadNote = null;   // if rate-limited/error, show a subtle note
+
   const I18N = {
     en: {
-      langLabel: "English",
-      langIcon: "🇬🇧",
-      themeDark: "Dark",
-      themeLight: "Light",
+      langLabel: "English", langIcon: "🇬🇧",
+      themeDark: "Dark", themeLight: "Light",
       heroTitle: "Small tools. Fast results. No accounts.",
       heroSubtitle: "A collection of web-based utilities built as hobby projects. Focus: simplicity, clarity, and quick access to useful data.",
       heroPrimary: "Open currency tool",
@@ -374,6 +369,7 @@
       noHitsTitle: "No results",
       noHitsDesc: "Try a different search term or change the filter.",
       footer: "built with GitHub Pages",
+      downloadsLabel: "Downloads",
       tools: {
         riksbank: {
           title: "Riksbank – Exchange rates vs SEK",
@@ -385,7 +381,7 @@
           title: "PDFMerger – Merge & Compress PDFs",
           desc: "A simple desktop tool to merge multiple PDF files and compress them into a smaller output file.",
           status: "Stable",
-          updated: "Updated: v1.0.0",
+          updated: "Latest release",
           downloadZip: "Download ZIP",
           downloadExe: "Download EXE",
           releasePage: "Release page"
@@ -393,10 +389,8 @@
       }
     },
     sv: {
-      langLabel: "Svenska",
-      langIcon: "🇸🇪",
-      themeDark: "Mörkt",
-      themeLight: "Ljust",
+      langLabel: "Svenska", langIcon: "🇸🇪",
+      themeDark: "Mörkt", themeLight: "Ljust",
       heroTitle: "Små verktyg. Snabb nytta. Inga konton.",
       heroSubtitle: "En samling webbaserade utilities byggda som hobbyprojekt. Fokus: enkelhet, tydlighet och att det ska gå snabbt att få ut data.",
       heroPrimary: "Öppna valutaverktyget",
@@ -410,6 +404,7 @@
       noHitsTitle: "Inga träffar",
       noHitsDesc: "Prova ett annat sökord eller byt filter.",
       footer: "byggt med GitHub Pages",
+      downloadsLabel: "Nedladdningar",
       tools: {
         riksbank: {
           title: "Riksbanken – Valutakurser mot SEK",
@@ -421,7 +416,7 @@
           title: "PDFMerger – Slå ihop & komprimera PDF",
           desc: "Ett enkelt desktop-verktyg som kan slå ihop flera PDF-filer och komprimera dem till en mindre utdatafil.",
           status: "Stabil",
-          updated: "Senast: v1.0.0",
+          updated: "Senaste release",
           downloadZip: "Ladda ner ZIP",
           downloadExe: "Ladda ner EXE",
           releasePage: "Release-sida"
@@ -430,26 +425,25 @@
     }
   };
 
-  // Tool catalog (language-aware labels are applied at render time)
   const tools = [
     {
       key: "riksbank",
       url: "https://simple-tools-dev.github.io/riksbanken-valutakurser/",
       tags: ["economy", "api", "export"],
       statusKind: "good",
-      actions: (t) => ([
-        { type: "open", url: t.url }
+      actions: () => ([
+        { type: "open", url: "https://simple-tools-dev.github.io/riksbanken-valutakurser/" }
       ])
     },
     {
       key: "pdfmerger",
-      url: PDFMERGER_LATEST,
+      url: PDFMERGER_LATEST_RELEASE_PAGE,
       tags: ["pdf"],
       statusKind: "good",
       actions: () => ([
-        { type: "link", url: PDFMERGER_ZIP, actionKey: "downloadZip", primary: true },
-        { type: "link", url: PDFMERGER_EXE, actionKey: "downloadExe" },
-        { type: "link", url: PDFMERGER_LATEST, actionKey: "releasePage" }
+        { type: "link", url: pdfmergerDownloadLinks.zip, actionKey: "downloadZip", primary: true },
+        { type: "link", url: pdfmergerDownloadLinks.exe, actionKey: "downloadExe" },
+        { type: "link", url: PDFMERGER_LATEST_RELEASE_PAGE, actionKey: "releasePage" }
       ])
     }
   ];
@@ -471,6 +465,8 @@
   const themeIcon = document.getElementById("themeIcon");
   const themeText = document.getElementById("themeText");
 
+  const footerText = document.getElementById("footerText");
+
   let activeTag = "all";
   let query = "";
 
@@ -485,9 +481,7 @@
 
   // Language
   const root = document.documentElement;
-  function getLang(){
-    return localStorage.getItem("lang") || "en"; // default EN
-  }
+  function getLang(){ return localStorage.getItem("lang") || "en"; } // default EN
   function setLang(lang){
     localStorage.setItem("lang", lang);
     root.setAttribute("lang", lang === "sv" ? "sv" : "en");
@@ -518,15 +512,12 @@
     q.placeholder = t.searchPlaceholder;
     copyLinkBtn.textContent = t.copyPage;
 
-    // Update filter labels
     filters.querySelectorAll(".tag").forEach(btn => {
       const key = btn.dataset.tag;
       btn.textContent = t.tags[key] || btn.textContent;
     });
 
-    // Footer
-    const footer = document.querySelector(".footer .mono").parentElement;
-    footer.innerHTML = `<span class="mono">simple-tools-dev</span> • ${escapeHtml(t.footer)}`;
+    footerText.textContent = t.footer;
 
     // Update theme text (keep current theme)
     const currentTheme = root.getAttribute("data-theme") || "dark";
@@ -538,6 +529,12 @@
   function toolText(key){
     const lang = getLang();
     return I18N[lang].tools[key];
+  }
+
+  function formatNumber(n){
+    if (typeof n !== "number") return "—";
+    const lang = getLang();
+    return n.toLocaleString(lang === "sv" ? "sv-SE" : "en-US");
   }
 
   function render(){
@@ -556,9 +553,23 @@
     grid.innerHTML = filtered.map((tool, idx) => {
       const text = toolText(tool.key);
 
-      const badges = tool.tags.map(tag => `<span class="badge">${escapeHtml(t.tags[tag] || tag)}</span>`).join("");
+      const badges = tool.tags
+        .map(tag => `<span class="badge">${escapeHtml(t.tags[tag] || tag)}</span>`)
+        .join("");
+
       const statusClass = tool.statusKind === "good" ? "badge good" : "badge warn";
       const statusLabel = text.status || "Info";
+
+      // Dynamic downloads badge for PDFMerger
+      let extraBadge = "";
+      if (tool.key === "pdfmerger") {
+        const count = pdfmergerTotalDownloads;
+        const label = `${t.downloadsLabel}: ${formatNumber(count)}`;
+        extraBadge = `<span class="badge">${escapeHtml(label)}</span>`;
+        if (pdfmergerDownloadNote) {
+          extraBadge += `<span class="badge warn">${escapeHtml(pdfmergerDownloadNote)}</span>`;
+        }
+      }
 
       const actions = tool.actions(tool).map(a => {
         if (a.type === "open") {
@@ -583,6 +594,7 @@
           <div class="badges">
             ${badges}
             <span class="badge">${escapeHtml(text.updated || "")}</span>
+            ${extraBadge}
           </div>
 
           <div class="card-actions">
@@ -602,7 +614,7 @@
       `;
     }
 
-    // Bind copy buttons (card-level)
+    // Bind copy buttons
     grid.querySelectorAll("button[data-copy]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const link = btn.getAttribute("data-copy");
@@ -634,7 +646,7 @@
     render();
   });
 
-  // Copy homepage link
+  // Copy page link
   copyLinkBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(location.href);
@@ -654,7 +666,7 @@
     applyTranslations();
   });
 
-  // Theme toggle
+  // Theme init + toggle
   const savedTheme = localStorage.getItem("theme");
   const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
   applyTheme(savedTheme || (prefersLight ? "light" : "dark"));
@@ -664,9 +676,79 @@
     applyTheme(current === "dark" ? "light" : "dark");
   });
 
-  // Init language (default EN)
+  // === Fetch + cache PDFMerger download counts (EXE + ZIP) from GitHub Releases API ===
+  async function updatePdfMergerDownloads(){
+    // Cache per visitor to avoid hammering GitHub API (unauth: 60 req/hour per IP).
+    const CACHE_KEY = "pdfmerger_dl_cache_v1";
+    const TTL_MS = 6 * 60 * 60 * 1000; // 6h
+
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (cached && typeof cached.total === "number" && (Date.now() - cached.ts) < TTL_MS) {
+        pdfmergerTotalDownloads = cached.total;
+        pdfmergerDownloadLinks = cached.links || pdfmergerDownloadLinks;
+        render();
+        return;
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const res = await fetch(PDFMERGER_API_LATEST, {
+        headers: { "Accept": "application/vnd.github+json" }
+      });
+
+      if (!res.ok) {
+        // Common: 403 rate limit. We’ll just hide counts for now.
+        pdfmergerDownloadNote = (getLang() === "sv")
+          ? "Kan inte hämta räknare just nu"
+          : "Counter unavailable right now";
+        render();
+        return;
+      }
+
+      const data = await res.json();
+      const assets = Array.isArray(data.assets) ? data.assets : [];
+
+      const exe = assets.find(a => a && a.name === PDFMERGER_EXE_NAME);
+      const zip = assets.find(a => a && a.name === PDFMERGER_ZIP_NAME);
+
+      const total = (exe?.download_count || 0) + (zip?.download_count || 0);
+      pdfmergerTotalDownloads = total;
+
+      // Prefer links from API (browser_download_url) so they always point to the latest release asset.
+      pdfmergerDownloadLinks = {
+        exe: exe?.browser_download_url || PDFMERGER_LATEST_RELEASE_PAGE,
+        zip: zip?.browser_download_url || PDFMERGER_LATEST_RELEASE_PAGE
+      };
+
+      pdfmergerDownloadNote = null;
+
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          total,
+          links: pdfmergerDownloadLinks
+        }));
+      } catch {
+        // ignore
+      }
+
+      render();
+    } catch {
+      pdfmergerDownloadNote = (getLang() === "sv")
+        ? "Kan inte hämta räknare just nu"
+        : "Counter unavailable right now";
+      render();
+    }
+  }
+
+  // Init language (default EN) + first render
   setLang(getLang());
   applyTranslations();
+  render();
+  updatePdfMergerDownloads();
 })();
 </script>
 </body>
