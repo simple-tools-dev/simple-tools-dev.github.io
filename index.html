@@ -4,56 +4,488 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simple Tools Dev</title>
+  <meta name="description" content="Små webbaserade verktyg (hobbyprojekt). Valutakurser, data och utilities." />
+
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 28px; line-height: 1.5; }
-    .wrap { max-width: 860px; }
-    h1 { margin: 0 0 6px; }
-    .muted { color: #666; margin: 0 0 18px; }
-    .card {
-      border: 1px solid #e6e6e6;
+    :root{
+      --bg: #0b0f14;
+      --bg2: #0e1520;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --border: rgba(255,255,255,0.10);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --accent: #6ee7ff;
+      --accent2: #a78bfa;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --btn: rgba(255,255,255,0.10);
+      --btnHover: rgba(255,255,255,0.14);
+      --focus: rgba(110,231,255,0.25);
+    }
+
+    :root[data-theme="light"]{
+      --bg: #f7f7fb;
+      --bg2: #ffffff;
+      --card: rgba(0,0,0,0.04);
+      --card2: rgba(0,0,0,0.06);
+      --text: rgba(0,0,0,0.88);
+      --muted: rgba(0,0,0,0.60);
+      --border: rgba(0,0,0,0.10);
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --accent: #0ea5e9;
+      --accent2: #7c3aed;
+      --btn: rgba(0,0,0,0.06);
+      --btnHover: rgba(0,0,0,0.09);
+      --focus: rgba(14,165,233,0.18);
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(110,231,255,0.20), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(167,139,250,0.18), transparent 50%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height: 100vh;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    .wrap{ max-width: 1080px; margin: 0 auto; padding: 28px 18px 50px; }
+
+    /* top bar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .logo{
+      width: 34px; height: 34px;
       border-radius: 12px;
-      padding: 16px;
-      margin: 14px 0;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      background:
+        radial-gradient(16px 16px at 30% 30%, rgba(110,231,255,0.9), transparent 60%),
+        radial-gradient(18px 18px at 70% 30%, rgba(167,139,250,0.8), transparent 65%),
+        radial-gradient(20px 20px at 50% 80%, rgba(52,211,153,0.65), transparent 65%),
+        rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
     }
-    .card h2 { margin: 0 0 8px; font-size: 18px; }
-    .card p { margin: 0 0 10px; color: #333; }
-    a.button {
-      display: inline-block;
+    .top-actions{ display:flex; gap: 10px; align-items:center; }
+
+    .chip{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .btn{
+      display:inline-flex; align-items:center; gap: 8px;
       padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      text-decoration: none;
-      color: #111;
-      background: #fafafa;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--btn);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      font-size: 14px;
     }
-    a.button:hover { background: #f3f3f3; }
-    .small { font-size: 13px; color: #666; margin-top: 18px; }
-    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+    .btn:hover{ background: var(--btnHover); }
+    .btn:active{ transform: translateY(1px); }
+    .btn:focus{ outline: none; box-shadow: 0 0 0 4px var(--focus); }
+
+    /* hero */
+    .hero{
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .hero::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(500px 240px at 20% 0%, rgba(110,231,255,0.22), transparent 65%),
+        radial-gradient(500px 240px at 80% 20%, rgba(167,139,250,0.20), transparent 65%);
+      filter: blur(0px);
+      pointer-events:none;
+    }
+    .hero-inner{ position: relative; display:grid; gap: 10px; }
+    .title{
+      font-size: clamp(24px, 3.5vw, 36px);
+      line-height: 1.1;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      max-width: 68ch;
+      font-size: 15px;
+    }
+    .hero-actions{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+    .primary{
+      background: linear-gradient(90deg, rgba(110,231,255,0.22), rgba(167,139,250,0.18));
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    /* controls */
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 16px 0 10px;
+    }
+    @media(min-width: 840px){
+      .controls{ grid-template-columns: 1.3fr 0.7fr; }
+    }
+
+    .search{
+      display:flex; align-items:center; gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+    }
+    .search input{
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .search input::placeholder{ color: rgba(255,255,255,0.45); }
+    :root[data-theme="light"] .search input::placeholder{ color: rgba(0,0,0,0.40); }
+
+    .filters{
+      display:flex; gap: 8px; flex-wrap: wrap; align-items:center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+    }
+    .tag{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+      transition: background .15s ease, transform .08s ease;
+    }
+    .tag:hover{ background: rgba(255,255,255,0.06); }
+    .tag:active{ transform: translateY(1px); }
+    .tag.active{
+      color: var(--text);
+      border-color: rgba(110,231,255,0.35);
+      background: rgba(110,231,255,0.12);
+    }
+
+    /* grid */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    @media(min-width: 760px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .card{
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      transition: transform .10s ease, border-color .15s ease;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: pop .35s ease forwards;
+    }
+    @keyframes pop{
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover{ transform: translateY(-2px); border-color: rgba(110,231,255,0.25); }
+
+    .card-top{
+      display:flex; justify-content:space-between; gap: 10px; align-items:flex-start;
+      margin-bottom: 8px;
+    }
+    .card h2{ margin: 0; font-size: 18px; letter-spacing: -0.2px; }
+    .desc{ margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    .badges{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .badge{
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .badge.good{ border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); color: var(--text); }
+    .badge.warn{ border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.10); color: var(--text); }
+
+    .card-actions{
+      display:flex; gap: 10px; flex-wrap: wrap; align-items:center;
+      margin-top: 14px;
+    }
+    .mini{
+      padding: 9px 11px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .footer{
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0.92;
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    /* small icon */
+    .dot{
+      width: 9px; height: 9px; border-radius: 999px;
+      background: var(--good);
+      box-shadow: 0 0 0 4px rgba(52,211,153,0.15);
+      flex: 0 0 auto;
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <h1>Simple Tools Dev</h1>
-    <p class="muted">Små webbaserade verktyg. Byggda som hobbyprojekt.</p>
 
-    <div class="card">
-      <h2>Riksbanken – Valutakurser mot SEK</h2>
-      <p>
-        Välj ett datum och se valutakurser mot SEK (källa: Sveriges Riksbank).
-        Du kan även exportera resultatet till Excel.
-      </p>
-      <a class="button" href="https://simple-tools-dev.github.io/riksbanken-valutakurser/">
-        Öppna verktyget
-      </a>
-      <p class="small">
-        Tips: Om du väljer en dag utan publicerade kurser (t.ex. helg) visas senaste bankdag automatiskt.
-      </p>
+    <div class="topbar">
+      <div class="brand" title="Simple Tools Dev">
+        <div class="logo" aria-hidden="true"></div>
+        <div>Simple Tools Dev</div>
+        <span class="chip"><span class="dot"></span> live</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn" id="themeBtn" type="button" aria-label="Byt tema">
+          <span id="themeIcon">🌙</span>
+          <span id="themeText">Mörkt</span>
+        </button>
+      </div>
     </div>
 
-    <p class="small">
-      Mer kommer snart. 🙂
-    </p>
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 class="title">Små verktyg. Snabb nytta. Inga konton.</h1>
+        <p class="subtitle">
+          En samling webbaserade utilities byggda som hobbyprojekt. Fokus: enkelhet, tydlighet och att det ska gå snabbt att få ut data.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://simple-tools-dev.github.io/riksbanken-valutakurser/">Öppna valutaverktyget</a>
+          <button class="btn" type="button" id="copyLinkBtn">Kopiera länk till sidan</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <div class="search">
+        <span aria-hidden="true">🔎</span>
+        <input id="q" type="text" placeholder="Sök verktyg (t.ex. valuta, riksbanken, excel)..." autocomplete="off" />
+      </div>
+
+      <div class="filters" id="filters">
+        <button class="tag active" data-tag="all" type="button">Alla</button>
+        <button class="tag" data-tag="ekonomi" type="button">Ekonomi</button>
+        <button class="tag" data-tag="api" type="button">API</button>
+        <button class="tag" data-tag="export" type="button">Export</button>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="footer">
+      <div>
+        <span class="mono">simple-tools-dev</span> • byggt för GitHub Pages
+      </div>
+      <div>
+        Tips: lägg till fler verktyg som egna repos, och lägg en ny “card” här.
+      </div>
+    </div>
+
   </div>
+
+<script>
+(() => {
+  const tools = [
+    {
+      title: "Riksbanken – Valutakurser mot SEK",
+      url: "https://simple-tools-dev.github.io/riksbanken-valutakurser/",
+      desc:
+        "Välj ett datum och se valutakurser mot SEK (källa: Sveriges Riksbank). Filtrerar till faktiskt valutadatum och kan exportera till Excel.",
+      tags: ["ekonomi", "api", "export"],
+      status: { label: "Stabil", kind: "good" },
+      updated: "Senast: nyss"
+    }
+    // Lägg till fler verktyg här senare:
+    // { title, url, desc, tags: ["..."], status: {label, kind}, updated }
+  ];
+
+  const grid = document.getElementById("grid");
+  const q = document.getElementById("q");
+  const filters = document.getElementById("filters");
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+  let activeTag = "all";
+  let query = "";
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function render(){
+    const qLower = query.trim().toLowerCase();
+
+    const filtered = tools.filter(t => {
+      const matchesTag = (activeTag === "all") || t.tags.includes(activeTag);
+      const hay = (t.title + " " + t.desc + " " + t.tags.join(" ")).toLowerCase();
+      const matchesQuery = !qLower || hay.includes(qLower);
+      return matchesTag && matchesQuery;
+    });
+
+    grid.innerHTML = filtered.map((t, idx) => {
+      const badges = t.tags.map(tag => `<span class="badge">${escapeHtml(tag)}</span>`).join("");
+      const statusClass = t.status?.kind === "good" ? "badge good" : "badge warn";
+      const statusLabel = t.status?.label || "Info";
+
+      return `
+        <article class="card" style="animation-delay:${Math.min(idx*60, 240)}ms">
+          <div class="card-top">
+            <h2>${escapeHtml(t.title)}</h2>
+            <span class="${statusClass}">${escapeHtml(statusLabel)}</span>
+          </div>
+          <p class="desc">${escapeHtml(t.desc)}</p>
+
+          <div class="badges">
+            ${badges}
+            <span class="badge">${escapeHtml(t.updated || "")}</span>
+          </div>
+
+          <div class="card-actions">
+            <a class="btn mini primary" href="${escapeHtml(t.url)}">Öppna</a>
+            <button class="btn mini" type="button" data-copy="${escapeHtml(t.url)}">Kopiera länk</button>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <article class="card" style="opacity:1; transform:none; animation:none;">
+          <h2>Inga träffar</h2>
+          <p class="desc">Prova ett annat sökord eller byt filter.</p>
+        </article>
+      `;
+    }
+
+    // Bind copy buttons
+    grid.querySelectorAll("button[data-copy]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const link = btn.getAttribute("data-copy");
+        try {
+          await navigator.clipboard.writeText(link);
+          btn.textContent = "Kopierad ✅";
+          setTimeout(() => (btn.textContent = "Kopiera länk"), 900);
+        } catch {
+          btn.textContent = "Kunde inte kopiera";
+          setTimeout(() => (btn.textContent = "Kopiera länk"), 900);
+        }
+      });
+    });
+  }
+
+  // Search
+  q.addEventListener("input", (e) => {
+    query = e.target.value || "";
+    render();
+  });
+
+  // Filters
+  filters.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tag");
+    if (!btn) return;
+    activeTag = btn.dataset.tag;
+    filters.querySelectorAll(".tag").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+
+  // Copy homepage link
+  copyLinkBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      copyLinkBtn.textContent = "Kopierad ✅";
+      setTimeout(() => (copyLinkBtn.textContent = "Kopiera länk till sidan"), 900);
+    } catch {
+      copyLinkBtn.textContent = "Kunde inte kopiera";
+      setTimeout(() => (copyLinkBtn.textContent = "Kopiera länk till sidan"), 900);
+    }
+  });
+
+  // Theme toggle
+  const root = document.documentElement;
+  const themeBtn = document.getElementById("themeBtn");
+  const themeIcon = document.getElementById("themeIcon");
+  const themeText = document.getElementById("themeText");
+
+  function applyTheme(theme){
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    const isLight = theme === "light";
+    themeIcon.textContent = isLight ? "☀️" : "🌙";
+    themeText.textContent = isLight ? "Ljust" : "Mörkt";
+  }
+
+  const saved = localStorage.getItem("theme");
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  applyTheme(saved || (prefersLight ? "light" : "dark"));
+
+  themeBtn.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme") || "dark";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+
+  // First render
+  render();
+})();
+</script>
 </body>
 </html>
