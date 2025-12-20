@@ -444,8 +444,8 @@
       tags: ["pdf"],
       statusKind: "good",
       actions: () => ([
-        { type: "link", url: pdfmergerDownloadLinks.zip, actionKey: "downloadZip", primary: true },
-        { type: "link", url: pdfmergerDownloadLinks.exe, actionKey: "downloadExe" },
+        { type: "link", url: pdfmergerDownloadLinks.zip, actionKey: "downloadZip", primary: true, track: "pdfmerger-zip" },
+        { type: "link", url: pdfmergerDownloadLinks.exe, actionKey: "downloadExe", track: "pdfmerger-exe" },
         { type: "link", url: PDFMERGER_LATEST_RELEASE_PAGE, actionKey: "releasePage" }
       ])
     }
@@ -581,7 +581,8 @@
         if (a.type === "link") {
           const label = text[a.actionKey] || a.actionKey;
           const cls = a.primary ? "btn mini primary" : "btn mini";
-          return `<a class="${cls}" href="${escapeHtml(a.url)}">${escapeHtml(label)}</a>`;
+          const trackAttr = a.track ? ` data-track="${escapeHtml(a.track)}"` : "";
+          return `<a class="${cls}" href="${escapeHtml(a.url)}"${trackAttr}>${escapeHtml(label)}</a>`;
         }
         return "";
       }).join("");
@@ -677,6 +678,22 @@
   themeBtn.addEventListener("click", () => {
     const current = root.getAttribute("data-theme") || "dark";
     applyTheme(current === "dark" ? "light" : "dark");
+  });
+
+  // === GoatCounter: Track download clicks (ZIP/EXE) via data-track on <a> ===
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[data-track]');
+    if (!a) return;
+
+    const key = a.getAttribute("data-track");
+    if (!key) return;
+
+    if (window.goatcounter && typeof window.goatcounter.count === "function") {
+      window.goatcounter.count({
+        path: `download/${key}`,
+        title: key
+      });
+    }
   });
 
   // === Fetch + cache PDFMerger download counts (EXE + ZIP) from GitHub Releases API ===
