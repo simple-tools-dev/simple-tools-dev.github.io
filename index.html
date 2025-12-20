@@ -291,22 +291,27 @@
       </div>
 
       <div class="top-actions">
-        <button class="btn" id="themeBtn" type="button" aria-label="Byt tema">
+        <button class="btn" id="langBtn" type="button" aria-label="Switch language">
+          <span id="langIcon">🇬🇧</span>
+          <span id="langText">English</span>
+        </button>
+
+        <button class="btn" id="themeBtn" type="button" aria-label="Toggle theme">
           <span id="themeIcon">🌙</span>
-          <span id="themeText">Mörkt</span>
+          <span id="themeText">Dark</span>
         </button>
       </div>
     </div>
 
     <section class="hero">
       <div class="hero-inner">
-        <h1 class="title">Små verktyg. Snabb nytta. Inga konton.</h1>
-        <p class="subtitle">
-          En samling webbaserade utilities byggda som hobbyprojekt. Fokus: enkelhet, tydlighet och att det ska gå snabbt att få ut data.
+        <h1 class="title" id="heroTitle">Small tools. Fast results. No accounts.</h1>
+        <p class="subtitle" id="heroSubtitle">
+          A collection of web-based utilities built as hobby projects. Focus: simplicity, clarity, and quick access to useful data.
         </p>
         <div class="hero-actions">
-          <a class="btn primary" href="https://simple-tools-dev.github.io/riksbanken-valutakurser/">Öppna valutaverktyget</a>
-          <button class="btn" type="button" id="copyLinkBtn">Kopiera länk till sidan</button>
+          <a class="btn primary" id="heroPrimaryBtn" href="https://simple-tools-dev.github.io/riksbanken-valutakurser/">Open currency tool</a>
+          <button class="btn" type="button" id="copyLinkBtn">Copy page link</button>
         </div>
       </div>
     </section>
@@ -314,14 +319,15 @@
     <div class="controls">
       <div class="search">
         <span aria-hidden="true">🔎</span>
-        <input id="q" type="text" placeholder="Sök verktyg (t.ex. valuta, riksbanken, excel)..." autocomplete="off" />
+        <input id="q" type="text" placeholder="Search tools (e.g. currency, riksbank, pdf)..." autocomplete="off" />
       </div>
 
       <div class="filters" id="filters">
-        <button class="tag active" data-tag="all" type="button">Alla</button>
-        <button class="tag" data-tag="ekonomi" type="button">Ekonomi</button>
+        <button class="tag active" data-tag="all" type="button">All</button>
+        <button class="tag" data-tag="economy" type="button">Economy</button>
         <button class="tag" data-tag="api" type="button">API</button>
         <button class="tag" data-tag="export" type="button">Export</button>
+        <button class="tag" data-tag="pdf" type="button">PDF</button>
       </div>
     </div>
 
@@ -329,7 +335,7 @@
 
     <div class="footer">
       <div>
-        <span class="mono">simple-tools-dev</span> • byggt för GitHub Pages
+        <span class="mono">simple-tools-dev</span> • built with GitHub Pages
       </div>
     </div>
 
@@ -337,24 +343,133 @@
 
 <script>
 (() => {
+  // === Configure your GitHub release download links here ===
+  // Replace if your repo name differs in casing.
+  // Using a fixed tag makes it stable for a specific release. You can update later per release.
+  // If you prefer "latest", you can link to the releases page instead.
+  const PDFMERGER_VERSION_TAG = "v1.0.0";
+  const PDFMERGER_REPO = "https://github.com/simple-tools-dev/pdfmerger";
+  const PDFMERGER_RELEASE_BASE = `${PDFMERGER_REPO}/releases/download/${PDFMERGER_VERSION_TAG}`;
+  const PDFMERGER_ZIP = `${PDFMERGER_RELEASE_BASE}/PDFMerger-Setup-1.00.zip`;
+  const PDFMERGER_EXE = `${PDFMERGER_RELEASE_BASE}/PDFMerger-Setup-1.00.exe`;
+  const PDFMERGER_LATEST = `${PDFMERGER_REPO}/releases/latest`;
+
+  // Language strings
+  const I18N = {
+    en: {
+      langLabel: "English",
+      langIcon: "🇬🇧",
+      themeDark: "Dark",
+      themeLight: "Light",
+      heroTitle: "Small tools. Fast results. No accounts.",
+      heroSubtitle: "A collection of web-based utilities built as hobby projects. Focus: simplicity, clarity, and quick access to useful data.",
+      heroPrimary: "Open currency tool",
+      copyPage: "Copy page link",
+      searchPlaceholder: "Search tools (e.g. currency, riksbank, pdf)...",
+      tags: { all: "All", economy: "Economy", api: "API", export: "Export", pdf: "PDF" },
+      cardOpen: "Open",
+      cardCopy: "Copy link",
+      copied: "Copied ✅",
+      copyFail: "Could not copy",
+      noHitsTitle: "No results",
+      noHitsDesc: "Try a different search term or change the filter.",
+      footer: "built with GitHub Pages",
+      tools: {
+        riksbank: {
+          title: "Riksbank – Exchange rates vs SEK",
+          desc: "Pick a date and view exchange rates vs SEK (source: Sveriges Riksbank). Filters to the actual rate date and supports Excel export.",
+          status: "Stable",
+          updated: "Updated: recently"
+        },
+        pdfmerger: {
+          title: "PDFMerger – Merge & Compress PDFs",
+          desc: "A simple desktop tool to merge multiple PDF files and compress them into a smaller output file.",
+          status: "Stable",
+          updated: "Updated: v1.0.0",
+          downloadZip: "Download ZIP",
+          downloadExe: "Download EXE",
+          releasePage: "Release page"
+        }
+      }
+    },
+    sv: {
+      langLabel: "Svenska",
+      langIcon: "🇸🇪",
+      themeDark: "Mörkt",
+      themeLight: "Ljust",
+      heroTitle: "Små verktyg. Snabb nytta. Inga konton.",
+      heroSubtitle: "En samling webbaserade utilities byggda som hobbyprojekt. Fokus: enkelhet, tydlighet och att det ska gå snabbt att få ut data.",
+      heroPrimary: "Öppna valutaverktyget",
+      copyPage: "Kopiera länk till sidan",
+      searchPlaceholder: "Sök verktyg (t.ex. valuta, riksbanken, pdf)...",
+      tags: { all: "Alla", economy: "Ekonomi", api: "API", export: "Export", pdf: "PDF" },
+      cardOpen: "Öppna",
+      cardCopy: "Kopiera länk",
+      copied: "Kopierad ✅",
+      copyFail: "Kunde inte kopiera",
+      noHitsTitle: "Inga träffar",
+      noHitsDesc: "Prova ett annat sökord eller byt filter.",
+      footer: "byggt med GitHub Pages",
+      tools: {
+        riksbank: {
+          title: "Riksbanken – Valutakurser mot SEK",
+          desc: "Välj ett datum och se valutakurser mot SEK (källa: Sveriges Riksbank). Filtrerar till faktiskt valutadatum och kan exportera till Excel.",
+          status: "Stabil",
+          updated: "Senast: nyss"
+        },
+        pdfmerger: {
+          title: "PDFMerger – Slå ihop & komprimera PDF",
+          desc: "Ett enkelt desktop-verktyg som kan slå ihop flera PDF-filer och komprimera dem till en mindre utdatafil.",
+          status: "Stabil",
+          updated: "Senast: v1.0.0",
+          downloadZip: "Ladda ner ZIP",
+          downloadExe: "Ladda ner EXE",
+          releasePage: "Release-sida"
+        }
+      }
+    }
+  };
+
+  // Tool catalog (language-aware labels are applied at render time)
   const tools = [
     {
-      title: "Riksbanken – Valutakurser mot SEK",
+      key: "riksbank",
       url: "https://simple-tools-dev.github.io/riksbanken-valutakurser/",
-      desc:
-        "Välj ett datum och se valutakurser mot SEK (källa: Sveriges Riksbank). Filtrerar till faktiskt valutadatum och kan exportera till Excel.",
-      tags: ["ekonomi", "api", "export"],
-      status: { label: "Stabil", kind: "good" },
-      updated: "Senast: nyss"
+      tags: ["economy", "api", "export"],
+      statusKind: "good",
+      actions: (t) => ([
+        { type: "open", url: t.url }
+      ])
+    },
+    {
+      key: "pdfmerger",
+      url: PDFMERGER_LATEST,
+      tags: ["pdf"],
+      statusKind: "good",
+      actions: () => ([
+        { type: "link", url: PDFMERGER_ZIP, actionKey: "downloadZip", primary: true },
+        { type: "link", url: PDFMERGER_EXE, actionKey: "downloadExe" },
+        { type: "link", url: PDFMERGER_LATEST, actionKey: "releasePage" }
+      ])
     }
-    // Lägg till fler verktyg här senare:
-    // { title, url, desc, tags: ["..."], status: {label, kind}, updated }
   ];
 
   const grid = document.getElementById("grid");
   const q = document.getElementById("q");
   const filters = document.getElementById("filters");
   const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+  const heroTitle = document.getElementById("heroTitle");
+  const heroSubtitle = document.getElementById("heroSubtitle");
+  const heroPrimaryBtn = document.getElementById("heroPrimaryBtn");
+
+  const langBtn = document.getElementById("langBtn");
+  const langIcon = document.getElementById("langIcon");
+  const langText = document.getElementById("langText");
+
+  const themeBtn = document.getElementById("themeBtn");
+  const themeIcon = document.getElementById("themeIcon");
+  const themeText = document.getElementById("themeText");
 
   let activeTag = "all";
   let query = "";
@@ -368,37 +483,111 @@
       .replaceAll("'","&#039;");
   }
 
+  // Language
+  const root = document.documentElement;
+  function getLang(){
+    return localStorage.getItem("lang") || "en"; // default EN
+  }
+  function setLang(lang){
+    localStorage.setItem("lang", lang);
+    root.setAttribute("lang", lang === "sv" ? "sv" : "en");
+  }
+
+  // Theme
+  function applyTheme(theme){
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    const lang = getLang();
+    const t = I18N[lang];
+    const isLight = theme === "light";
+    themeIcon.textContent = isLight ? "☀️" : "🌙";
+    themeText.textContent = isLight ? t.themeLight : t.themeDark;
+  }
+
+  function applyTranslations(){
+    const lang = getLang();
+    const t = I18N[lang];
+
+    langIcon.textContent = t.langIcon;
+    langText.textContent = t.langLabel;
+
+    heroTitle.textContent = t.heroTitle;
+    heroSubtitle.textContent = t.heroSubtitle;
+    heroPrimaryBtn.textContent = t.heroPrimary;
+
+    q.placeholder = t.searchPlaceholder;
+    copyLinkBtn.textContent = t.copyPage;
+
+    // Update filter labels
+    filters.querySelectorAll(".tag").forEach(btn => {
+      const key = btn.dataset.tag;
+      btn.textContent = t.tags[key] || btn.textContent;
+    });
+
+    // Footer
+    const footer = document.querySelector(".footer .mono").parentElement;
+    footer.innerHTML = `<span class="mono">simple-tools-dev</span> • ${escapeHtml(t.footer)}`;
+
+    // Update theme text (keep current theme)
+    const currentTheme = root.getAttribute("data-theme") || "dark";
+    applyTheme(currentTheme);
+
+    render();
+  }
+
+  function toolText(key){
+    const lang = getLang();
+    return I18N[lang].tools[key];
+  }
+
   function render(){
+    const lang = getLang();
+    const t = I18N[lang];
     const qLower = query.trim().toLowerCase();
 
-    const filtered = tools.filter(t => {
-      const matchesTag = (activeTag === "all") || t.tags.includes(activeTag);
-      const hay = (t.title + " " + t.desc + " " + t.tags.join(" ")).toLowerCase();
+    const filtered = tools.filter(tool => {
+      const matchesTag = (activeTag === "all") || tool.tags.includes(activeTag);
+      const text = toolText(tool.key);
+      const hay = (text.title + " " + text.desc + " " + tool.tags.join(" ")).toLowerCase();
       const matchesQuery = !qLower || hay.includes(qLower);
       return matchesTag && matchesQuery;
     });
 
-    grid.innerHTML = filtered.map((t, idx) => {
-      const badges = t.tags.map(tag => `<span class="badge">${escapeHtml(tag)}</span>`).join("");
-      const statusClass = t.status?.kind === "good" ? "badge good" : "badge warn";
-      const statusLabel = t.status?.label || "Info";
+    grid.innerHTML = filtered.map((tool, idx) => {
+      const text = toolText(tool.key);
+
+      const badges = tool.tags.map(tag => `<span class="badge">${escapeHtml(t.tags[tag] || tag)}</span>`).join("");
+      const statusClass = tool.statusKind === "good" ? "badge good" : "badge warn";
+      const statusLabel = text.status || "Info";
+
+      const actions = tool.actions(tool).map(a => {
+        if (a.type === "open") {
+          return `<a class="btn mini primary" href="${escapeHtml(a.url)}">${escapeHtml(t.cardOpen)}</a>`;
+        }
+        if (a.type === "link") {
+          const label = text[a.actionKey] || a.actionKey;
+          const cls = a.primary ? "btn mini primary" : "btn mini";
+          return `<a class="${cls}" href="${escapeHtml(a.url)}">${escapeHtml(label)}</a>`;
+        }
+        return "";
+      }).join("");
 
       return `
         <article class="card" style="animation-delay:${Math.min(idx*60, 240)}ms">
           <div class="card-top">
-            <h2>${escapeHtml(t.title)}</h2>
+            <h2>${escapeHtml(text.title)}</h2>
             <span class="${statusClass}">${escapeHtml(statusLabel)}</span>
           </div>
-          <p class="desc">${escapeHtml(t.desc)}</p>
+          <p class="desc">${escapeHtml(text.desc)}</p>
 
           <div class="badges">
             ${badges}
-            <span class="badge">${escapeHtml(t.updated || "")}</span>
+            <span class="badge">${escapeHtml(text.updated || "")}</span>
           </div>
 
           <div class="card-actions">
-            <a class="btn mini primary" href="${escapeHtml(t.url)}">Öppna</a>
-            <button class="btn mini" type="button" data-copy="${escapeHtml(t.url)}">Kopiera länk</button>
+            ${actions}
+            <button class="btn mini" type="button" data-copy="${escapeHtml(tool.url)}">${escapeHtml(t.cardCopy)}</button>
           </div>
         </article>
       `;
@@ -407,23 +596,23 @@
     if (filtered.length === 0) {
       grid.innerHTML = `
         <article class="card" style="opacity:1; transform:none; animation:none;">
-          <h2>Inga träffar</h2>
-          <p class="desc">Prova ett annat sökord eller byt filter.</p>
+          <h2>${escapeHtml(t.noHitsTitle)}</h2>
+          <p class="desc">${escapeHtml(t.noHitsDesc)}</p>
         </article>
       `;
     }
 
-    // Bind copy buttons
+    // Bind copy buttons (card-level)
     grid.querySelectorAll("button[data-copy]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const link = btn.getAttribute("data-copy");
         try {
           await navigator.clipboard.writeText(link);
-          btn.textContent = "Kopierad ✅";
-          setTimeout(() => (btn.textContent = "Kopiera länk"), 900);
+          btn.textContent = I18N[getLang()].copied;
+          setTimeout(() => (btn.textContent = I18N[getLang()].cardCopy), 900);
         } catch {
-          btn.textContent = "Kunde inte kopiera";
-          setTimeout(() => (btn.textContent = "Kopiera länk"), 900);
+          btn.textContent = I18N[getLang()].copyFail;
+          setTimeout(() => (btn.textContent = I18N[getLang()].cardCopy), 900);
         }
       });
     });
@@ -449,39 +638,35 @@
   copyLinkBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(location.href);
-      copyLinkBtn.textContent = "Kopierad ✅";
-      setTimeout(() => (copyLinkBtn.textContent = "Kopiera länk till sidan"), 900);
+      copyLinkBtn.textContent = I18N[getLang()].copied;
+      setTimeout(() => (copyLinkBtn.textContent = I18N[getLang()].copyPage), 900);
     } catch {
-      copyLinkBtn.textContent = "Kunde inte kopiera";
-      setTimeout(() => (copyLinkBtn.textContent = "Kopiera länk till sidan"), 900);
+      copyLinkBtn.textContent = I18N[getLang()].copyFail;
+      setTimeout(() => (copyLinkBtn.textContent = I18N[getLang()].copyPage), 900);
     }
   });
 
+  // Language toggle
+  langBtn.addEventListener("click", () => {
+    const current = getLang();
+    const next = current === "en" ? "sv" : "en";
+    setLang(next);
+    applyTranslations();
+  });
+
   // Theme toggle
-  const root = document.documentElement;
-  const themeBtn = document.getElementById("themeBtn");
-  const themeIcon = document.getElementById("themeIcon");
-  const themeText = document.getElementById("themeText");
-
-  function applyTheme(theme){
-    root.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-    const isLight = theme === "light";
-    themeIcon.textContent = isLight ? "☀️" : "🌙";
-    themeText.textContent = isLight ? "Ljust" : "Mörkt";
-  }
-
-  const saved = localStorage.getItem("theme");
+  const savedTheme = localStorage.getItem("theme");
   const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-  applyTheme(saved || (prefersLight ? "light" : "dark"));
+  applyTheme(savedTheme || (prefersLight ? "light" : "dark"));
 
   themeBtn.addEventListener("click", () => {
     const current = root.getAttribute("data-theme") || "dark";
     applyTheme(current === "dark" ? "light" : "dark");
   });
 
-  // First render
-  render();
+  // Init language (default EN)
+  setLang(getLang());
+  applyTranslations();
 })();
 </script>
 </body>
