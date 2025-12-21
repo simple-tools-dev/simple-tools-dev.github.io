@@ -323,6 +323,8 @@
         <button class="tag" data-tag="api" type="button">API</button>
         <button class="tag" data-tag="export" type="button">Export</button>
         <button class="tag" data-tag="pdf" type="button">PDF</button>
+        <button class="tag" data-tag="images" type="button">Images</button>
+        <button class="tag" data-tag="desktop" type="button">Desktop</button>
       </div>
     </div>
 
@@ -338,26 +340,34 @@
 
 <script>
 (() => {
-  // ====== PDFMerger: CHANGE THESE IF NEEDED ======
-  // NOTE: Ensure this matches your repo exactly (case sensitive in URL aesthetics).
+  // ====== PDFMerger ======
   const PDFMERGER_OWNER = "simple-tools-dev";
   const PDFMERGER_REPO = "pdfmerger"; // change to "PDFMerger" if your repo uses that casing
 
-  // These are your filenames in the release assets:
   const PDFMERGER_EXE_NAME = "PDFMerger-Setup-1.00.exe";
   const PDFMERGER_ZIP_NAME = "PDFMerger-Setup-1.00.zip";
 
   const PDFMERGER_LATEST_RELEASE_PAGE = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
   const PDFMERGER_API_LATEST = `https://api.github.com/repos/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest`;
 
-  // Direct download fallbacks (so buttons never end up on the release page)
   const PDFMERGER_EXE_LATEST_DOWNLOAD = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest/download/${encodeURIComponent(PDFMERGER_EXE_NAME)}`;
   const PDFMERGER_ZIP_LATEST_DOWNLOAD = `https://github.com/${PDFMERGER_OWNER}/${PDFMERGER_REPO}/releases/latest/download/${encodeURIComponent(PDFMERGER_ZIP_NAME)}`;
 
-  // We'll read browser_download_url from the GitHub API so the links always match the latest release.
   let pdfmergerDownloadLinks = { exe: PDFMERGER_EXE_LATEST_DOWNLOAD, zip: PDFMERGER_ZIP_LATEST_DOWNLOAD };
-  let pdfmergerTotalDownloads = null; // EXE + ZIP combined (latest release)
-  let pdfmergerDownloadNote = null;   // if rate-limited/error, show a subtle note
+  let pdfmergerTotalDownloads = null;
+  let pdfmergerDownloadNote = null;
+
+  // ====== DuplicateImageFinder (same pattern as PDFMerger: /releases/latest) ======
+  const DIF_OWNER = "simple-tools-dev";
+  const DIF_REPO  = "duplicateimagefinder";
+
+  const DIF_LATEST_RELEASE_PAGE = `https://github.com/${DIF_OWNER}/${DIF_REPO}/releases/latest`;
+  const DIF_API_LATEST = `https://api.github.com/repos/${DIF_OWNER}/${DIF_REPO}/releases/latest`;
+
+  // We'll populate these via API (first .zip + first .exe). Fallback points to latest release page.
+  let difDownloadLinks = { exe: DIF_LATEST_RELEASE_PAGE, zip: DIF_LATEST_RELEASE_PAGE };
+  let difTotalDownloads = null;
+  let difDownloadNote = null;
 
   const I18N = {
     en: {
@@ -368,7 +378,10 @@
       heroPrimary: "Open currency tool",
       copyPage: "Copy page link",
       searchPlaceholder: "Search tools (e.g. currency, riksbank, pdf)...",
-      tags: { all: "All", economy: "Economy", api: "API", export: "Export", pdf: "PDF" },
+      tags: {
+        all: "All", economy: "Economy", api: "API", export: "Export", pdf: "PDF",
+        images: "Images", desktop: "Desktop"
+      },
       cardOpen: "Open",
       cardCopy: "Copy link",
       copied: "Copied ✅",
@@ -398,6 +411,15 @@
           downloadZip: "Download ZIP",
           downloadExe: "Download EXE",
           releasePage: "Release page"
+        },
+        duplicateimagefinder: {
+          title: "DuplicateImageFinder – Find duplicate images",
+          desc: "Desktop tool that scans folders and detects duplicate / near-duplicate images using perceptual hashing. Useful for cleaning up large photo libraries.",
+          status: "Stable",
+          updated: "Latest release",
+          downloadZip: "Download ZIP",
+          downloadExe: "Download EXE",
+          releasePage: "Release page"
         }
       }
     },
@@ -409,7 +431,10 @@
       heroPrimary: "Öppna valutaverktyget",
       copyPage: "Kopiera länk till sidan",
       searchPlaceholder: "Sök verktyg (t.ex. valuta, riksbanken, pdf)...",
-      tags: { all: "Alla", economy: "Ekonomi", api: "API", export: "Export", pdf: "PDF" },
+      tags: {
+        all: "Alla", economy: "Ekonomi", api: "API", export: "Export", pdf: "PDF",
+        images: "Bilder", desktop: "Desktop"
+      },
       cardOpen: "Öppna",
       cardCopy: "Kopiera länk",
       copied: "Kopierad ✅",
@@ -434,6 +459,15 @@
         pdfmerger: {
           title: "PDFMerger – Slå ihop & komprimera PDF",
           desc: "Ett enkelt desktop-verktyg som kan slå ihop flera PDF-filer och komprimera dem till en mindre utdatafil.",
+          status: "Stabil",
+          updated: "Senaste release",
+          downloadZip: "Ladda ner ZIP",
+          downloadExe: "Ladda ner EXE",
+          releasePage: "Release-sida"
+        },
+        duplicateimagefinder: {
+          title: "DuplicateImageFinder – Hitta dubletter av bilder",
+          desc: "Desktop-verktyg som skannar mappar och hittar dubletter / nära-dubletter med perceptuell hashing. Bra för att rensa stora bildbibliotek.",
           status: "Stabil",
           updated: "Senaste release",
           downloadZip: "Ladda ner ZIP",
@@ -466,12 +500,23 @@
     {
       key: "pdfmerger",
       url: PDFMERGER_LATEST_RELEASE_PAGE,
-      tags: ["pdf"],
+      tags: ["pdf", "desktop"],
       statusKind: "good",
       actions: () => ([
         { type: "link", url: pdfmergerDownloadLinks.zip, actionKey: "downloadZip", primary: true, track: "pdfmerger-zip" },
         { type: "link", url: pdfmergerDownloadLinks.exe, actionKey: "downloadExe", track: "pdfmerger-exe" },
         { type: "link", url: PDFMERGER_LATEST_RELEASE_PAGE, actionKey: "releasePage" }
+      ])
+    },
+    {
+      key: "duplicateimagefinder",
+      url: DIF_LATEST_RELEASE_PAGE,
+      tags: ["images", "desktop"],
+      statusKind: "good",
+      actions: () => ([
+        { type: "link", url: difDownloadLinks.zip, actionKey: "downloadZip", primary: true, track: "duplicateimagefinder-zip" },
+        { type: "link", url: difDownloadLinks.exe, actionKey: "downloadExe", track: "duplicateimagefinder-exe" },
+        { type: "link", url: DIF_LATEST_RELEASE_PAGE, actionKey: "releasePage" }
       ])
     }
   ];
@@ -588,15 +633,19 @@
       const statusClass = tool.statusKind === "good" ? "badge good" : "badge warn";
       const statusLabel = text.status || "Info";
 
-      // Dynamic downloads badge for PDFMerger
+      // Downloads badge (same style as PDFMerger) for both desktop apps
       let extraBadge = "";
       if (tool.key === "pdfmerger") {
         const count = pdfmergerTotalDownloads;
         const label = `${t.downloadsLabel}: ${formatNumber(count)}`;
         extraBadge = `<span class="badge">${escapeHtml(label)}</span>`;
-        if (pdfmergerDownloadNote) {
-          extraBadge += `<span class="badge warn">${escapeHtml(pdfmergerDownloadNote)}</span>`;
-        }
+        if (pdfmergerDownloadNote) extraBadge += `<span class="badge warn">${escapeHtml(pdfmergerDownloadNote)}</span>`;
+      }
+      if (tool.key === "duplicateimagefinder") {
+        const count = difTotalDownloads;
+        const label = `${t.downloadsLabel}: ${formatNumber(count)}`;
+        extraBadge = `<span class="badge">${escapeHtml(label)}</span>`;
+        if (difDownloadNote) extraBadge += `<span class="badge warn">${escapeHtml(difDownloadNote)}</span>`;
       }
 
       const actions = tool.actions(tool).map(a => {
@@ -723,7 +772,6 @@
 
   // === Fetch + cache PDFMerger download counts (EXE + ZIP) from GitHub Releases API ===
   async function updatePdfMergerDownloads(){
-    // Cache per visitor to avoid hammering GitHub API (unauth: 60 req/hour per IP).
     const CACHE_KEY = "pdfmerger_dl_cache_v1";
     const TTL_MS = 6 * 60 * 60 * 1000; // 6h
 
@@ -735,9 +783,7 @@
         render();
         return;
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     try {
       const res = await fetch(PDFMERGER_API_LATEST, {
@@ -745,7 +791,6 @@
       });
 
       if (!res.ok) {
-        // Common: 403 rate limit. We’ll just hide counts for now.
         pdfmergerDownloadNote = (getLang() === "sv")
           ? "Kan inte hämta räknare just nu"
           : "Counter unavailable right now";
@@ -762,7 +807,6 @@
       const total = (exe?.download_count || 0) + (zip?.download_count || 0);
       pdfmergerTotalDownloads = total;
 
-      // Prefer links from API (browser_download_url) so they always point to the latest release asset.
       pdfmergerDownloadLinks = {
         exe: exe?.browser_download_url || pdfmergerDownloadLinks.exe,
         zip: zip?.browser_download_url || pdfmergerDownloadLinks.zip
@@ -776,9 +820,7 @@
           total,
           links: pdfmergerDownloadLinks
         }));
-      } catch {
-        // ignore
-      }
+      } catch {}
 
       render();
     } catch {
@@ -789,11 +831,75 @@
     }
   }
 
-  // Init language (default EN) + first render
+  // === Fetch + cache DuplicateImageFinder download counts (EXE + ZIP) from GitHub Releases API ===
+  async function updateDuplicateImageFinderDownloads(){
+    const CACHE_KEY = "dif_dl_cache_v1";
+    const TTL_MS = 6 * 60 * 60 * 1000; // 6h
+
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (cached && typeof cached.total === "number" && cached.links && (Date.now() - cached.ts) < TTL_MS) {
+        difTotalDownloads = cached.total;
+        difDownloadLinks = cached.links || difDownloadLinks;
+        render();
+        return;
+      }
+    } catch {}
+
+    try {
+      const res = await fetch(DIF_API_LATEST, {
+        headers: { "Accept": "application/vnd.github+json" }
+      });
+
+      if (!res.ok) {
+        difDownloadNote = (getLang() === "sv")
+          ? "Kan inte hämta räknare just nu"
+          : "Counter unavailable right now";
+        render();
+        return;
+      }
+
+      const data = await res.json();
+      const assets = Array.isArray(data.assets) ? data.assets : [];
+
+      // Pick first .exe and first .zip (case-insensitive)
+      const exe = assets.find(a => a?.name && /\.exe$/i.test(a.name));
+      const zip = assets.find(a => a?.name && /\.zip$/i.test(a.name));
+
+      difTotalDownloads = (exe?.download_count || 0) + (zip?.download_count || 0);
+
+      difDownloadLinks = {
+        exe: exe?.browser_download_url || DIF_LATEST_RELEASE_PAGE,
+        zip: zip?.browser_download_url || DIF_LATEST_RELEASE_PAGE
+      };
+
+      difDownloadNote = null;
+
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          total: difTotalDownloads,
+          links: difDownloadLinks
+        }));
+      } catch {}
+
+      render();
+    } catch {
+      difDownloadNote = (getLang() === "sv")
+        ? "Kan inte hämta räknare just nu"
+        : "Counter unavailable right now";
+      render();
+    }
+  }
+
+  // Init language + render
   setLang(getLang());
   applyTranslations();
   render();
+
+  // Fetch counters/links
   updatePdfMergerDownloads();
+  updateDuplicateImageFinderDownloads();
 })();
 </script>
 </body>
