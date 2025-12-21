@@ -305,7 +305,7 @@
           A collection of web-based utilities built as hobby projects. Focus: simplicity, clarity, and quick access to useful data.
         </p>
         <div class="hero-actions">
-          <a class="btn primary" id="heroPrimaryBtn" href="https://simple-tools-dev.github.io/riksbanken-valutakurser/">Open currency tool</a>
+          <!-- removed "Open currency tool" -->
           <button class="btn" type="button" id="copyLinkBtn">Copy page link</button>
         </div>
       </div>
@@ -414,7 +414,7 @@
         },
         duplicateimagefinder: {
           title: "DuplicateImageFinder – Find duplicate images",
-          desc: "Desktop tool that scans folders and detects duplicate / near-duplicate images using perceptual hashing. Useful for cleaning up large photo libraries.",
+          desc: "Desktop tool that scans folders and detects duplicate using perceptual hashing. Useful for cleaning up large photo libraries.",
           status: "Stable",
           updated: "Latest release",
           downloadZip: "Download ZIP",
@@ -467,7 +467,7 @@
         },
         duplicateimagefinder: {
           title: "DuplicateImageFinder – Hitta dubletter av bilder",
-          desc: "Desktop-verktyg som skannar mappar och hittar dubletter / nära-dubletter med perceptuell hashing. Bra för att rensa stora bildbibliotek.",
+          desc: "Desktop-verktyg som skannar mappar och hittar dubletter med perceptuell hashing. Bra för att rensa stora bildbibliotek.",
           status: "Stabil",
           updated: "Senaste release",
           downloadZip: "Ladda ner ZIP",
@@ -528,7 +528,6 @@
 
   const heroTitle = document.getElementById("heroTitle");
   const heroSubtitle = document.getElementById("heroSubtitle");
-  const heroPrimaryBtn = document.getElementById("heroPrimaryBtn");
 
   const langBtn = document.getElementById("langBtn");
   const langIcon = document.getElementById("langIcon");
@@ -580,7 +579,6 @@
 
     heroTitle.textContent = t.heroTitle;
     heroSubtitle.textContent = t.heroSubtitle;
-    heroPrimaryBtn.textContent = t.heroPrimary;
 
     q.placeholder = t.searchPlaceholder;
     copyLinkBtn.textContent = t.copyPage;
@@ -633,7 +631,7 @@
       const statusClass = tool.statusKind === "good" ? "badge good" : "badge warn";
       const statusLabel = text.status || "Info";
 
-      // Downloads badge (same style as PDFMerger) for both desktop apps
+      // Downloads badge (same style) for both desktop apps
       let extraBadge = "";
       if (tool.key === "pdfmerger") {
         const count = pdfmergerTotalDownloads;
@@ -755,18 +753,52 @@
   });
 
   // === GoatCounter: Track download clicks (ZIP/EXE) via data-track on <a> ===
-  document.addEventListener("click", (e) => {
+  // Also: for DuplicateImageFinder, if href is still the fallback release-page, we fetch direct asset link and redirect.
+  let difFetchInFlight = null;
+
+  async function ensureDuplicateImageFinderLinks(){
+    if (difDownloadLinks.zip !== DIF_LATEST_RELEASE_PAGE && difDownloadLinks.exe !== DIF_LATEST_RELEASE_PAGE) {
+      return difDownloadLinks;
+    }
+    if (difFetchInFlight) return difFetchInFlight;
+    difFetchInFlight = (async () => {
+      await updateDuplicateImageFinderDownloads({ force: true });
+      difFetchInFlight = null;
+      return difDownloadLinks;
+    })();
+    return difFetchInFlight;
+  }
+
+  document.addEventListener("click", async (e) => {
     const a = e.target.closest('a[data-track]');
     if (!a) return;
 
     const key = a.getAttribute("data-track");
     if (!key) return;
 
+    // GoatCounter click tracking
     if (window.goatcounter && typeof window.goatcounter.count === "function") {
       window.goatcounter.count({
         path: `download/${key}`,
         title: key
       });
+    }
+
+    // Force direct download behavior for DuplicateImageFinder if still on fallback link
+    if (key === "duplicateimagefinder-zip" || key === "duplicateimagefinder-exe") {
+      const href = a.getAttribute("href") || "";
+      const isFallback = href === DIF_LATEST_RELEASE_PAGE || href.includes("/releases/latest");
+      // If it's still pointing to the release page (fallback), resolve asset URL and redirect
+      if (isFallback) {
+        e.preventDefault();
+        try {
+          const links = await ensureDuplicateImageFinderLinks();
+          const target = (key === "duplicateimagefinder-zip") ? links.zip : links.exe;
+          window.location.href = target || DIF_LATEST_RELEASE_PAGE;
+        } catch {
+          window.location.href = DIF_LATEST_RELEASE_PAGE;
+        }
+      }
     }
   });
 
@@ -832,19 +864,21 @@
   }
 
   // === Fetch + cache DuplicateImageFinder download counts (EXE + ZIP) from GitHub Releases API ===
-  async function updateDuplicateImageFinderDownloads(){
+  async function updateDuplicateImageFinderDownloads(opts = { force: false }){
     const CACHE_KEY = "dif_dl_cache_v1";
     const TTL_MS = 6 * 60 * 60 * 1000; // 6h
 
-    try {
-      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
-      if (cached && typeof cached.total === "number" && cached.links && (Date.now() - cached.ts) < TTL_MS) {
-        difTotalDownloads = cached.total;
-        difDownloadLinks = cached.links || difDownloadLinks;
-        render();
-        return;
-      }
-    } catch {}
+    if (!opts.force) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+        if (cached && typeof cached.total === "number" && cached.links && (Date.now() - cached.ts) < TTL_MS) {
+          difTotalDownloads = cached.total;
+          difDownloadLinks = cached.links || difDownloadLinks;
+          render();
+          return;
+        }
+      } catch {}
+    }
 
     try {
       const res = await fetch(DIF_API_LATEST, {
