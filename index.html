@@ -357,15 +357,24 @@
   let pdfmergerTotalDownloads = null;
   let pdfmergerDownloadNote = null;
 
-  // ====== DuplicateImageFinder (same pattern as PDFMerger: /releases/latest) ======
+  // ====== DuplicateImageFinder (handled same way as PDFMerger: fixed /download/<filename>) ======
   const DIF_OWNER = "simple-tools-dev";
   const DIF_REPO  = "duplicateimagefinder";
+  const DIF_TAG   = "v.1.0.0";
 
-  const DIF_LATEST_RELEASE_PAGE = `https://github.com/${DIF_OWNER}/${DIF_REPO}/releases/latest`;
-  const DIF_API_LATEST = `https://api.github.com/repos/${DIF_OWNER}/${DIF_REPO}/releases/latest`;
+  const DIF_RELEASE_PAGE = `https://github.com/${DIF_OWNER}/${DIF_REPO}/releases/tag/${encodeURIComponent(DIF_TAG)}`;
+  const DIF_API_BY_TAG   = `https://api.github.com/repos/${DIF_OWNER}/${DIF_REPO}/releases/tags/${encodeURIComponent(DIF_TAG)}`;
 
-  // We'll populate these via API (first .zip + first .exe). Fallback points to latest release page.
-  let difDownloadLinks = { exe: DIF_LATEST_RELEASE_PAGE, zip: DIF_LATEST_RELEASE_PAGE };
+  // Filenames must match exactly (as you provided)
+  const DIF_EXE_NAME = "DuplicateImageFinder_Setup_1.0.0.exe";
+  const DIF_ZIP_NAME = "DuplicateImageFinder_Setup_1.0.0.zip";
+
+  // Direct download URLs (instant download behavior)
+  const DIF_EXE_DOWNLOAD = `https://github.com/${DIF_OWNER}/${DIF_REPO}/releases/download/${encodeURIComponent(DIF_TAG)}/${encodeURIComponent(DIF_EXE_NAME)}`;
+  const DIF_ZIP_DOWNLOAD = `https://github.com/${DIF_OWNER}/${DIF_REPO}/releases/download/${encodeURIComponent(DIF_TAG)}/${encodeURIComponent(DIF_ZIP_NAME)}`;
+
+  // Same pattern as PDFMerger: links always point directly to the asset (never release page)
+  let difDownloadLinks = { exe: DIF_EXE_DOWNLOAD, zip: DIF_ZIP_DOWNLOAD };
   let difTotalDownloads = null;
   let difDownloadNote = null;
 
@@ -510,13 +519,13 @@
     },
     {
       key: "duplicateimagefinder",
-      url: DIF_LATEST_RELEASE_PAGE,
+      url: DIF_RELEASE_PAGE,
       tags: ["images", "desktop"],
       statusKind: "good",
       actions: () => ([
         { type: "link", url: difDownloadLinks.zip, actionKey: "downloadZip", primary: true, track: "duplicateimagefinder-zip" },
         { type: "link", url: difDownloadLinks.exe, actionKey: "downloadExe", track: "duplicateimagefinder-exe" },
-        { type: "link", url: DIF_LATEST_RELEASE_PAGE, actionKey: "releasePage" }
+        { type: "link", url: DIF_RELEASE_PAGE, actionKey: "releasePage" }
       ])
     }
   ];
@@ -753,52 +762,18 @@
   });
 
   // === GoatCounter: Track download clicks (ZIP/EXE) via data-track on <a> ===
-  // Also: for DuplicateImageFinder, if href is still the fallback release-page, we fetch direct asset link and redirect.
-  let difFetchInFlight = null;
-
-  async function ensureDuplicateImageFinderLinks(){
-    if (difDownloadLinks.zip !== DIF_LATEST_RELEASE_PAGE && difDownloadLinks.exe !== DIF_LATEST_RELEASE_PAGE) {
-      return difDownloadLinks;
-    }
-    if (difFetchInFlight) return difFetchInFlight;
-    difFetchInFlight = (async () => {
-      await updateDuplicateImageFinderDownloads({ force: true });
-      difFetchInFlight = null;
-      return difDownloadLinks;
-    })();
-    return difFetchInFlight;
-  }
-
-  document.addEventListener("click", async (e) => {
+  document.addEventListener("click", (e) => {
     const a = e.target.closest('a[data-track]');
     if (!a) return;
 
     const key = a.getAttribute("data-track");
     if (!key) return;
 
-    // GoatCounter click tracking
     if (window.goatcounter && typeof window.goatcounter.count === "function") {
       window.goatcounter.count({
         path: `download/${key}`,
         title: key
       });
-    }
-
-    // Force direct download behavior for DuplicateImageFinder if still on fallback link
-    if (key === "duplicateimagefinder-zip" || key === "duplicateimagefinder-exe") {
-      const href = a.getAttribute("href") || "";
-      const isFallback = href === DIF_LATEST_RELEASE_PAGE || href.includes("/releases/latest");
-      // If it's still pointing to the release page (fallback), resolve asset URL and redirect
-      if (isFallback) {
-        e.preventDefault();
-        try {
-          const links = await ensureDuplicateImageFinderLinks();
-          const target = (key === "duplicateimagefinder-zip") ? links.zip : links.exe;
-          window.location.href = target || DIF_LATEST_RELEASE_PAGE;
-        } catch {
-          window.location.href = DIF_LATEST_RELEASE_PAGE;
-        }
-      }
     }
   });
 
@@ -863,25 +838,22 @@
     }
   }
 
-  // === Fetch + cache DuplicateImageFinder download counts (EXE + ZIP) from GitHub Releases API ===
-  async function updateDuplicateImageFinderDownloads(opts = { force: false }){
+  // === Fetch + cache DuplicateImageFinder download counts (EXE + ZIP) from GitHub Releases API (tag v.1.0.0) ===
+  async function updateDuplicateImageFinderDownloads(){
     const CACHE_KEY = "dif_dl_cache_v1";
     const TTL_MS = 6 * 60 * 60 * 1000; // 6h
 
-    if (!opts.force) {
-      try {
-        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
-        if (cached && typeof cached.total === "number" && cached.links && (Date.now() - cached.ts) < TTL_MS) {
-          difTotalDownloads = cached.total;
-          difDownloadLinks = cached.links || difDownloadLinks;
-          render();
-          return;
-        }
-      } catch {}
-    }
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (cached && typeof cached.total === "number" && (Date.now() - cached.ts) < TTL_MS) {
+        difTotalDownloads = cached.total;
+        render();
+        return;
+      }
+    } catch {}
 
     try {
-      const res = await fetch(DIF_API_LATEST, {
+      const res = await fetch(DIF_API_BY_TAG, {
         headers: { "Accept": "application/vnd.github+json" }
       });
 
@@ -896,24 +868,16 @@
       const data = await res.json();
       const assets = Array.isArray(data.assets) ? data.assets : [];
 
-      // Pick first .exe and first .zip (case-insensitive)
-      const exe = assets.find(a => a?.name && /\.exe$/i.test(a.name));
-      const zip = assets.find(a => a?.name && /\.zip$/i.test(a.name));
+      const exe = assets.find(a => a && a.name === DIF_EXE_NAME);
+      const zip = assets.find(a => a && a.name === DIF_ZIP_NAME);
 
       difTotalDownloads = (exe?.download_count || 0) + (zip?.download_count || 0);
-
-      difDownloadLinks = {
-        exe: exe?.browser_download_url || DIF_LATEST_RELEASE_PAGE,
-        zip: zip?.browser_download_url || DIF_LATEST_RELEASE_PAGE
-      };
-
       difDownloadNote = null;
 
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({
           ts: Date.now(),
-          total: difTotalDownloads,
-          links: difDownloadLinks
+          total: difTotalDownloads
         }));
       } catch {}
 
@@ -931,7 +895,7 @@
   applyTranslations();
   render();
 
-  // Fetch counters/links
+  // Fetch counters
   updatePdfMergerDownloads();
   updateDuplicateImageFinderDownloads();
 })();
