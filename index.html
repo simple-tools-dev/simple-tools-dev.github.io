@@ -8,7 +8,6 @@
   <meta name="description" content="Simple Tools Dev: a collection of small web tools and hobby projects. Currency & Riksbank exchange rates, PDF utilities, spin-the-wheel, and Minesweeper." />
 
   <meta name="google-site-verification" content="Wklak2Xi8p59W9jPQRZIWTaiF5rOwp9YMxZtNHG4n0k" />
-
   <!-- SEO helpers -->
   <link rel="canonical" href="https://simple-tools-dev.github.io/" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -348,7 +347,6 @@
           A collection of web-based utilities built as hobby projects. Focus: simplicity, clarity, and quick access to useful data.
         </p>
         <div class="hero-actions">
-          <!-- removed "Open currency tool" -->
           <button class="btn" type="button" id="copyLinkBtn">Copy page link</button>
         </div>
       </div>
@@ -368,6 +366,9 @@
         <button class="tag" data-tag="pdf" type="button">PDF</button>
         <button class="tag" data-tag="images" type="button">Images</button>
         <button class="tag" data-tag="desktop" type="button">Desktop</button>
+        <button class="tag" data-tag="games" type="button">Game</button>
+        <button class="tag" data-tag="web" type="button">Web</button>
+        <button class="tag" data-tag="fun" type="button">Fun</button>
       </div>
     </div>
 
@@ -432,7 +433,7 @@
       searchPlaceholder: "Search tools (e.g. currency, riksbank, pdf)...",
       tags: {
         all: "All", economy: "Economy", api: "API", export: "Export", pdf: "PDF",
-        images: "Images", desktop: "Desktop"
+        images: "Images", desktop: "Desktop", games: "Game", web: "Web", fun: "Fun"
       },
       cardOpen: "Open",
       cardCopy: "Copy link",
@@ -491,7 +492,7 @@
       searchPlaceholder: "Sök verktyg (t.ex. valuta, riksbanken, pdf)...",
       tags: {
         all: "Alla", economy: "Ekonomi", api: "API", export: "Export", pdf: "PDF",
-        images: "Bilder", desktop: "Desktop"
+        images: "Bilder", desktop: "Desktop", games: "Spel", web: "Webb", fun: "Kul"
       },
       cardOpen: "Öppna",
       cardCopy: "Kopiera länk",
@@ -573,7 +574,7 @@
     {
       key: "minesweeper",
       url: "https://simple-tools-dev.github.io/minesweeper/",
-      tags: [],
+      tags: ["games", "web", "fun"],
       statusKind: "good",
       actions: () => ([
         { type: "open", url: "https://simple-tools-dev.github.io/minesweeper/" }
@@ -716,7 +717,6 @@
       const statusClass = tool.statusKind === "good" ? "badge good" : "badge warn";
       const statusLabel = text.status || "Info";
 
-      // Downloads badge (same style) for both desktop apps
       let extraBadge = "";
       if (tool.key === "pdfmerger") {
         const count = pdfmergerTotalDownloads;
@@ -775,7 +775,6 @@
       `;
     }
 
-    // Bind copy buttons
     grid.querySelectorAll("button[data-copy]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const link = btn.getAttribute("data-copy");
@@ -791,13 +790,11 @@
     });
   }
 
-  // Search
   q.addEventListener("input", (e) => {
     query = e.target.value || "";
     render();
   });
 
-  // Filters
   filters.addEventListener("click", (e) => {
     const btn = e.target.closest(".tag");
     if (!btn) return;
@@ -807,7 +804,6 @@
     render();
   });
 
-  // Copy page link
   copyLinkBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(location.href);
@@ -819,7 +815,6 @@
     }
   });
 
-  // Language toggle
   langBtn.addEventListener("click", () => {
     const current = getLang();
     const next = current === "en" ? "sv" : "en";
@@ -827,7 +822,6 @@
     applyTranslations();
   });
 
-  // Theme init + toggle
   const savedTheme = localStorage.getItem("theme");
   const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
   applyTheme(savedTheme || (prefersLight ? "light" : "dark"));
@@ -837,7 +831,6 @@
     applyTheme(current === "dark" ? "light" : "dark");
   });
 
-  // === GoatCounter: Track download clicks (ZIP/EXE) via data-track on <a> ===
   document.addEventListener("click", (e) => {
     const a = e.target.closest('a[data-track]');
     if (!a) return;
@@ -853,7 +846,6 @@
     }
   });
 
-  // === Fetch + cache PDFMerger download counts (EXE + ZIP) from GitHub Releases API ===
   async function updatePdfMergerDownloads(){
     const CACHE_KEY = "pdfmerger_dl_cache_v1";
     const TTL_MS = 6 * 60 * 60 * 1000; // 6h
@@ -914,7 +906,6 @@
     }
   }
 
-  // === Fetch + cache DuplicateImageFinder download counts (EXE + ZIP) from GitHub Releases API (tag v.1.0.0) ===
   async function updateDuplicateImageFinderDownloads(){
     const CACHE_KEY = "dif_dl_cache_v1";
     const TTL_MS = 6 * 60 * 60 * 1000; // 6h
@@ -966,12 +957,10 @@
     }
   }
 
-  // Init language + render
   setLang(getLang());
   applyTranslations();
   render();
 
-  // Fetch counters
   updatePdfMergerDownloads();
   updateDuplicateImageFinderDownloads();
 })();
