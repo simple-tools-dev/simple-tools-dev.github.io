@@ -3,12 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simple Tools Dev</title>
-  <meta name="description" content="Small web tools (hobby projects). Currency rates, PDF utilities and more." />
+
+  <title>Simple Tools Dev – Web tools & small hobby projects (currency, PDF, games)</title>
+  <meta name="description" content="Simple Tools Dev: a collection of small web tools and hobby projects. Currency & Riksbank exchange rates, PDF utilities, spin-the-wheel, and Minesweeper." />
+
   <meta name="google-site-verification" content="Wklak2Xi8p59W9jPQRZIWTaiF5rOwp9YMxZtNHG4n0k" />
+
+  <!-- SEO helpers -->
+  <link rel="canonical" href="https://simple-tools-dev.github.io/" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Simple Tools Dev" />
+  <meta property="og:title" content="Simple Tools Dev – Web tools & small hobby projects" />
+  <meta property="og:description" content="Currency & Riksbank exchange rates, PDF utilities, spin-the-wheel, and Minesweeper." />
+  <meta property="og:url" content="https://simple-tools-dev.github.io/" />
+  <!-- If you add a social image later, uncomment:
+  <meta property="og:image" content="https://simple-tools-dev.github.io/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  -->
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Simple Tools Dev" />
+  <meta name="twitter:description" content="Small web tools & hobby projects: currency, PDF utilities, spin-the-wheel, and Minesweeper." />
+  <!-- <meta name="twitter:image" content="https://simple-tools-dev.github.io/og-image.png" /> -->
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Simple Tools Dev",
+    "url": "https://simple-tools-dev.github.io/",
+    "description": "A collection of small web tools and hobby projects.",
+    "inLanguage": ["en","sv"],
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://simple-tools-dev.github.io/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
   <!-- GoatCounter -->
   <script data-goatcounter="https://simple-tools-dev.goatcounter.com/count"
           async src="//gc.zgo.at/count.js"></script>
+
   <style>
     :root{
       --bg: #0b0f14;
@@ -412,6 +455,12 @@
           status: "Stable",
           updated: "Updated: recently"
         },
+        minesweeper: {
+          title: "Minesweeper – Classic online (SV/EN)",
+          desc: "Play classic Minesweeper (minröj) with custom board size, chording and dark/light theme. Includes Swedish and English.",
+          status: "Stable",
+          updated: "Play now"
+        },
         pdfmerger: {
           title: "PDFMerger – Merge & Compress PDFs",
           desc: "A simple desktop tool to merge multiple PDF files and compress them into a smaller output file.",
@@ -465,6 +514,12 @@
           status: "Stabil",
           updated: "Senast: nyss"
         },
+        minesweeper: {
+          title: "Minesweeper – Klassisk online (SV/EN)",
+          desc: "Spela klassisk Minesweeper (minröj) med egen storlek, chording och mörkt/ljust tema. Svenska och engelska.",
+          status: "Stabil",
+          updated: "Spela nu"
+        },
         pdfmerger: {
           title: "PDFMerger – Slå ihop & komprimera PDF",
           desc: "Ett enkelt desktop-verktyg som kan slå ihop flera PDF-filer och komprimera dem till en mindre utdatafil.",
@@ -487,7 +542,16 @@
     }
   };
 
-  const tools = [
+  // Shuffle helper (Fisher–Yates). Called once on load so the top cards vary.
+  function shuffleInPlace(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  let tools = [
     {
       key: "riksbank",
       url: "https://simple-tools-dev.github.io/riksbanken-valutakurser/",
@@ -504,6 +568,15 @@
       statusKind: "good",
       actions: () => ([
         { type: "open", url: "https://simple-tools-dev.github.io/spin-the-wheel/" }
+      ])
+    },
+    {
+      key: "minesweeper",
+      url: "https://simple-tools-dev.github.io/minesweeper/",
+      tags: [],
+      statusKind: "good",
+      actions: () => ([
+        { type: "open", url: "https://simple-tools-dev.github.io/minesweeper/" }
       ])
     },
     {
@@ -529,6 +602,9 @@
       ])
     }
   ];
+
+  // Shuffle once per page load (keeps behavior consistent during filtering/search)
+  shuffleInPlace(tools);
 
   const grid = document.getElementById("grid");
   const q = document.getElementById("q");
