@@ -457,8 +457,14 @@
           updated: "Updated: recently"
         },
         minesweeper: {
-          title: "Minesweeper – Classic online (SV/EN)",
-          desc: "Play classic Minesweeper (minröj) with custom board size, chording and dark/light theme. Includes Swedish and English.",
+          title: "Minesweeper - Classic Online",
+          desc: "Play classic Minesweeper with custom board size, chording and dark/light theme. Includes Swedish and English.",
+          status: "Stable",
+          updated: "Play now"
+        },
+        shift4: {
+          title: "Shift-4",
+          desc: "Orbito-style 4-in-a-row on a 4×4 board: optionally nudge one opponent ball, place your ball, then Shift to rotate the inner and outer rings. Play vs AI or a friend, with dark/light theme and custom colors.",
           status: "Stable",
           updated: "Play now"
         },
@@ -516,8 +522,14 @@
           updated: "Senast: nyss"
         },
         minesweeper: {
-          title: "Minesweeper – Klassisk online (SV/EN)",
-          desc: "Spela klassisk Minesweeper (minröj) med egen storlek, chording och mörkt/ljust tema. Svenska och engelska.",
+          title: "Minesweeper - Classic Online",
+          desc: "Spela klassisk Minesweeper med egen storlek, chording och mörkt/ljust tema. Svenska och engelska.",
+          status: "Stabil",
+          updated: "Spela nu"
+        },
+        shift4: {
+          title: "Shift-4",
+          desc: "Ett modernt 4-i-rad (Orbito-stil) på 4×4: valfritt flytta en motståndarkula ett steg, placera din kula, och tryck Shift för att rotera både inner- och ytterringen. Spela mot AI eller lokalt, med mörkt/ljust tema och valbara färger.",
           status: "Stabil",
           updated: "Spela nu"
         },
@@ -574,10 +586,19 @@
     {
       key: "minesweeper",
       url: "https://simple-tools-dev.github.io/minesweeper/",
-      tags: ["games", "web", "fun"],
+      tags: ["games", "web"], /* removed "fun" */
       statusKind: "good",
       actions: () => ([
         { type: "open", url: "https://simple-tools-dev.github.io/minesweeper/" }
+      ])
+    },
+    {
+      key: "shift4",
+      url: "https://simple-tools-dev.github.io/shift-4/",
+      tags: ["games", "web", "fun"],
+      statusKind: "good",
+      actions: () => ([
+        { type: "open", url: "https://simple-tools-dev.github.io/shift-4/" }
       ])
     },
     {
