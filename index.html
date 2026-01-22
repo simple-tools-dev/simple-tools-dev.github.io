@@ -368,7 +368,6 @@
         <button class="tag" data-tag="desktop" type="button">Desktop</button>
         <button class="tag" data-tag="games" type="button">Game</button>
         <button class="tag" data-tag="web" type="button">Web</button>
-        <button class="tag" data-tag="fun" type="button">Fun</button>
       </div>
     </div>
 
@@ -433,7 +432,7 @@
       searchPlaceholder: "Search tools (e.g. currency, riksbank, pdf)...",
       tags: {
         all: "All", economy: "Economy", api: "API", export: "Export", pdf: "PDF",
-        images: "Images", desktop: "Desktop", games: "Game", web: "Web", fun: "Fun"
+        images: "Images", desktop: "Desktop", games: "Game", web: "Web"
       },
       cardOpen: "Open",
       cardCopy: "Copy link",
@@ -468,6 +467,12 @@
           status: "Stable",
           updated: "Play now"
         },
+        snake: {
+          title: "Snake",
+          desc: "A classic Snake game: steer the snake, collect food to grow, and avoid crashing into walls or yourself as the pace ramps up.",
+          status: "Stable",
+          updated: "Play now"
+        },
         pdfmerger: {
           title: "PDFMerger – Merge & Compress PDFs",
           desc: "A simple desktop tool to merge multiple PDF files and compress them into a smaller output file.",
@@ -498,7 +503,7 @@
       searchPlaceholder: "Sök verktyg (t.ex. valuta, riksbanken, pdf)...",
       tags: {
         all: "Alla", economy: "Ekonomi", api: "API", export: "Export", pdf: "PDF",
-        images: "Bilder", desktop: "Desktop", games: "Spel", web: "Webb", fun: "Kul"
+        images: "Bilder", desktop: "Desktop", games: "Spel", web: "Webb"
       },
       cardOpen: "Öppna",
       cardCopy: "Kopiera länk",
@@ -530,6 +535,12 @@
         shift4: {
           title: "Shift-4",
           desc: "Ett modernt 4-i-rad (Orbito-stil) på 4×4: valfritt flytta en motståndarkula ett steg, placera din kula, och tryck Shift för att rotera både inner- och ytterringen. Spela mot AI eller lokalt, med mörkt/ljust tema och valbara färger.",
+          status: "Stabil",
+          updated: "Spela nu"
+        },
+        snake: {
+          title: "Snake",
+          desc: "Ett klassiskt Snake-spel: styr ormen, ät mat för att växa, och undvik att krocka med väggar eller dig själv när tempot ökar.",
           status: "Stabil",
           updated: "Spela nu"
         },
@@ -586,7 +597,7 @@
     {
       key: "minesweeper",
       url: "https://simple-tools-dev.github.io/minesweeper/",
-      tags: ["games", "web"], /* removed "fun" */
+      tags: ["games", "web"],
       statusKind: "good",
       actions: () => ([
         { type: "open", url: "https://simple-tools-dev.github.io/minesweeper/" }
@@ -595,10 +606,19 @@
     {
       key: "shift4",
       url: "https://simple-tools-dev.github.io/shift-4/",
-      tags: ["games", "web", "fun"],
+      tags: ["games", "web"],
       statusKind: "good",
       actions: () => ([
         { type: "open", url: "https://simple-tools-dev.github.io/shift-4/" }
+      ])
+    },
+    {
+      key: "snake",
+      url: "https://simple-tools-dev.github.io/snake/",
+      tags: ["games", "web"],
+      statusKind: "good",
+      actions: () => ([
+        { type: "open", url: "https://simple-tools-dev.github.io/snake/" }
       ])
     },
     {
